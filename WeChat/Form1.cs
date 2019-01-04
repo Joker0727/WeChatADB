@@ -136,7 +136,7 @@ namespace WeChat
                 {
                     if (string.IsNullOrEmpty(pf.Sex))
                         continue;
-                    WriteResult(pf.PhoneNumber + "：" + pf.Sex + "\r\n");
+                    WriteResult(pf.PhoneNumber, pf.Sex);
                     index++;
                 }
                 catch (Exception ex)
@@ -561,25 +561,33 @@ namespace WeChat
             return sex;
         }
 
-        public void WriteResult(string result)
+        public void WriteResult(string result, string sex)
         {
             if (!Directory.Exists(resultPath))
                 Directory.CreateDirectory(resultPath);
-
-            if (result.Contains("男"))
+            result += "\r\n";
+            switch (sex)
             {
-                resultFullPath = resultPath + @"\男.txt";
-                File.AppendAllText(resultFullPath, result);
-            }
-            else if (result.Contains("女"))
-            {
-                resultFullPath = resultPath + @"\女.txt";
-                File.AppendAllText(resultFullPath, result);
-            }
-            else if (result.Contains("未知"))
-            {
-                resultFullPath = resultPath + @"\未知.txt";
-                File.AppendAllText(resultFullPath, result);
+                case "男":
+                    {
+                        resultFullPath = resultPath + @"\男.txt";
+                        File.AppendAllText(resultFullPath, result);
+                        break;
+                    }
+                case "女":
+                    {
+                        resultFullPath = resultPath + @"\女.txt";
+                        File.AppendAllText(resultFullPath, result);
+                        break;
+                    }
+                case "未知":
+                    {
+                        resultFullPath = resultPath + @"\未知.txt";
+                        File.AppendAllText(resultFullPath, result);
+                        break;
+                    }
+                default:
+                    break;
             }
         }
         public bool IsAuthorised(string workId)
@@ -727,8 +735,8 @@ namespace WeChat
 
             RunAdbCommand(commandStr6);//关闭微信界面
             Thread.Sleep(1000 * 2);
-            CreatVcf();
             RunAdbCommand(commandStr1);//清除手机号
+            CreatVcf();
             Thread.Sleep(1000 * 1);
             RunAdbCommand(commandStr4);//删除模拟器中的文件
             Thread.Sleep(1000 * 1);
