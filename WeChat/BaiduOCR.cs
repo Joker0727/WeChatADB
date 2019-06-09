@@ -51,7 +51,7 @@ namespace WeChat
         {
             client.Timeout = 60000;  // 修改超时时间          
             // var image = File.ReadAllBytes("图片文件路径");
-            var image = Bitmap2Byte(bitmap); ;
+            var image = Bitmap2Byte(bitmap);
             // 调用通用文字识别, 图片参数为本地图片，可能会抛出网络等异常，请使用try/catch捕获
             var result = client.GeneralBasic(image);
             //Console.WriteLine(result);

@@ -20,7 +20,7 @@ namespace WeChat
     public partial class Form1 : Form
     {
         public static string basePath = AppDomain.CurrentDomain.BaseDirectory;
-        public string capturePicPath = AppDomain.CurrentDomain.BaseDirectory + @"CapturePic\";
+        public string capturePicPath = AppDomain.CurrentDomain.BaseDirectory;
         public string resultPath, resultFullPath = string.Empty;
         public string pptClassName = "LDPlayerMainFrame";
         public IntPtr m_hGameWnd = IntPtr.Zero;
@@ -32,7 +32,8 @@ namespace WeChat
         public string result = string.Empty;
         public string defaultPath = AppDomain.CurrentDomain.BaseDirectory + "DefaultPath.ini";
         public VerifyCode vfc = null;
-        public string workId = "ww-0021";
+        public string workId = "ww-0030";
+        public string settime = "2019-06-09";
         public static string sqlitePath = AppDomain.CurrentDomain.BaseDirectory + @"sqlite3.db";
         public SQLiteHelper sqlLiteHelper = null;
         public int singleCount = 0;
@@ -65,9 +66,9 @@ namespace WeChat
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            if (!IsAuthorised(workId))
+            if (!IsAuthorised())
             {
-                MessageBox.Show("请检查网络！", "WeChatFilter");
+                MessageBox.Show("使用权限到期，请联系开发者！", "WeChatFilter");
                 return;
             }
 
@@ -208,6 +209,7 @@ namespace WeChat
                             User32API.Keybd_event(VirtualKey.DOWN, 0, 0, 0);
                             User32API.Keybd_event(VirtualKey.DOWN, 0, KeyEvent.KEYEVENTF_KEYUP, 0);
                         }
+                        Thread.Sleep(500);
                         phoneNumberStr = Screenshot();
                         if (!IsNumeric(phoneNumberStr) || phoneNumberStr.Length != 11)
                         {
@@ -263,7 +265,7 @@ namespace WeChat
         {
             string phoneStr, sexStr = string.Empty;
             int nt = 2;
-            for (int i = 0; i < 11; i++)
+            for (int i = 0; i < 9; i++)
             {
                 for (int j = 0; j < nt; j++)
                 {
@@ -339,18 +341,41 @@ namespace WeChat
         /// </summary>
         public string LoopOperation()
         {
-            Win32ApiMouseClick(280, 700, 1);
-            Thread.Sleep(1500);
+            string sex = string.Empty;
+            for (int i = 0; i < 2; i++)
+            {
+                Thread.Sleep(500);
+                Win32ApiMouseClick(280, 700, 1);
+                Thread.Sleep(1500);
+                rt = new RECT(75, 100, 370, 130);
+                Bitmap numberSexPic = ImageTool.GetScreenCapture(m_hGameWnd, rt);
+                sex = CheckSex(numberSexPic);
+                numberSexPic.Dispose();
 
-            rt = new RECT(70, 120, 270, 140);
-            Bitmap numberSexPic = ImageTool.GetScreenCapture(m_hGameWnd, rt);
-            // numberSexPic.Save(resultPath + @"\sex.bmp");
-            string sex = CheckSex(numberSexPic);
-            numberSexPic.Dispose();
-
+                if (sex == "未知")
+                {
+                    rt = new RECT(130, 230, 250, 550);
+                    Bitmap bit = ImageTool.GetScreenCapture(m_hGameWnd, rt);
+                    bool isDetail = IsDetail(bit);
+                    bit.Dispose();
+                    if (isDetail)
+                        break;
+                    else
+                        continue;
+                }
+                else
+                    break;
+            }
+        back:
             User32API.Keybd_event(VirtualKey.ESCAPE, 0, 0, 0);
             User32API.Keybd_event(VirtualKey.ESCAPE, 0, KeyEvent.KEYEVENTF_KEYUP, 0);
-            Thread.Sleep(500);
+            Thread.Sleep(800);
+            rt = new RECT(130, 230, 250, 550);
+            Bitmap bit1 = ImageTool.GetScreenCapture(m_hGameWnd, rt);
+            bool isDetail1 = IsDetail(bit1);
+            bit1.Dispose();
+            if (isDetail1)
+                goto back;
             return sex;
         }
         /// <summary>
@@ -358,33 +383,85 @@ namespace WeChat
         /// </summary>
         public string LoopOperation(int i)
         {
-            Win32ApiMouseClick(280, 210 + (i * 50), 1);
-            Thread.Sleep(1500);
+            string sex = string.Empty;
+            for (int j = 0; j < 2; j++)
+            {
+                Thread.Sleep(500);
+                Win32ApiMouseClick(280, 210 + (i * 55), 1);
+                Thread.Sleep(1500);
 
-            rt = new RECT(70, 120, 270, 140);
-            Bitmap numberSexPic = ImageTool.GetScreenCapture(m_hGameWnd, rt);
-            //numberSexPic.Save(resultPath + @"\sex.bmp");
-            string sex = CheckSex(numberSexPic);
-            numberSexPic.Dispose();
-
+                rt = new RECT(75, 100, 370, 130);
+                Bitmap numberSexPic = ImageTool.GetScreenCapture(m_hGameWnd, rt);
+                //numberSexPic.Save(resultPath + @"\sex.bmp");
+                sex = CheckSex(numberSexPic);
+                numberSexPic.Dispose();
+                if (sex == "未知")
+                {
+                    rt = new RECT(130, 230, 250, 550);
+                    Bitmap bit = ImageTool.GetScreenCapture(m_hGameWnd, rt);
+                    bool isDetail = IsDetail(bit);
+                    bit.Dispose();
+                    if (isDetail)
+                        break;
+                    else
+                        continue;
+                }
+                else
+                    break;
+            }
+        back:
             User32API.Keybd_event(VirtualKey.ESCAPE, 0, 0, 0);
             User32API.Keybd_event(VirtualKey.ESCAPE, 0, KeyEvent.KEYEVENTF_KEYUP, 0);
             Thread.Sleep(800);
+            rt = new RECT(130, 230, 250, 550);
+            Bitmap bit1 = ImageTool.GetScreenCapture(m_hGameWnd, rt);
+            bool isDetail1 = IsDetail(bit1);
+            bit1.Dispose();
+            if (isDetail1)
+                goto back;
             return sex;
+        }
+        public bool IsDetail(Bitmap bit)
+        {
+            int xx = 10;//误差值
+            int greenCount = 0;
+            bool isDetail = false;
+
+            for (int i = 0; i < bit.Width; i++)
+            {
+                for (int j = 0; j < bit.Height; j++)
+                {
+                    Color pixelColor = bit.GetPixel(i, j);
+
+                    int r = pixelColor.R;//颜色的 RED 分量值                
+                    int g = pixelColor.G;//颜色的 GREEN 分量值                   
+                    int b = pixelColor.B;//颜色的 BLUE 分量值 
+
+                    if ((89 - xx) < r && r < (89 + xx) &&
+                        (109 - xx) < g && g < (109 + xx) &&
+                       (150 - xx) < b && b < (150 + xx))
+                        greenCount++;
+                }
+            }
+            if (greenCount > 50)
+                isDetail = true;
+            else
+                isDetail = false;
+            return isDetail;
         }
         /// <summary>
         /// 第一页截图
         /// </summary>
         public string FirstPageScreenshot(int i)
         {
-            int y = 205 + (52 * i);
-            rt = new RECT(118, y, 190, y + 15);
+            int y = 210 + (58 * i);
+            rt = new RECT(131, y, 204, y + 15);
             m_hGameWnd = User32API.GetDesktopWindow();
             Bitmap numberSexPic = ImageTool.GetScreenCapture(m_hGameWnd, rt);
             //vfc = new VerifyCode(numberSexPic);
             //vfc.BitmapTo1Bpp(0.83);//二值化
-            //vfc.GetPicValidByValue(128, 11);//得到有效空间     
-            // numberSexPic.Save(capturePicPath+"number.bmp");
+            //vfc.GetPicValidByValue(128/, 11);/得到有效空间     
+            numberSexPic.Save(capturePicPath + "number" + i + ".bmp");
             return baidu.GeneralBasicDemo(numberSexPic);
         }
         /// <summary>
@@ -393,7 +470,7 @@ namespace WeChat
         /// <returns></returns>
         public string Screenshot()
         {
-            rt = new RECT(118, 700, 190, 715);
+            rt = new RECT(131, 697, 204, 712);
             m_hGameWnd = User32API.GetDesktopWindow();
             //m_hGameWnd = User32API.FindWindow(pptClassName, null);
             Bitmap numberSexPic = ImageTool.GetScreenCapture(m_hGameWnd, rt);
@@ -590,21 +667,27 @@ namespace WeChat
                     break;
             }
         }
-        public bool IsAuthorised(string workId)
+        public bool IsAuthorised()
         {
-            string conStr = "Server=111.230.149.80;DataBase=MyDB;uid=sa;pwd=1add1&one";
-            using (SqlConnection con = new SqlConnection(conStr))
-            {
-                string sql = string.Format("select count(*) from MyWork Where WorkId ='{0}'", workId);
-                using (SqlCommand cmd = new SqlCommand(sql, con))
-                {
-                    con.Open();
-                    int count = int.Parse(cmd.ExecuteScalar().ToString());
-                    if (count > 0)
-                        return true;
-                }
-            }
-            return false;
+            //string conStr = "Server=111.230.149.80;DataBase=MyDB;uid=sa;pwd=1add1&one";
+            //using (SqlConnection con = new SqlConnection(conStr))
+            //{
+            //    string sql = string.Format("select count(*) from MyWork Where WorkId ='{0}'", workId);
+            //    using (SqlCommand cmd = new SqlCommand(sql, con))
+            //    {
+            //        con.Open();
+            //        int count = int.Parse(cmd.ExecuteScalar().ToString());
+            //        if (count > 0)
+            //            return true;
+            //    }
+            //}
+            DateTime ETime = Convert.ToDateTime(settime);
+
+            DateTime newTime = DateTime.Now;
+            TimeSpan tsTime = newTime - ETime;
+            if (tsTime.Days >= 1)
+                return false;
+            return true;
         }
         public void InitPath()
         {

@@ -217,4 +217,6 @@ E:\Private\WeChatADB\WeChat\obj\Debug\WeChat.csproj.CoreCompileInputs.cache
 E:\Private\WeChatADB\WeChat\obj\Debug\WeChat.csproj.CopyComplete
 E:\Private\WeChatADB\WeChat\obj\Debug\WeChat.exe
 E:\Private\WeChatADB\WeChat\obj\Debug\WeChat.pdb
-E:\Private\WeChatADB\WeChat\obj\Debug\WeChat.csprojAssemblyReference.cache
+E:\Private\WeChatADB\WeChat\bin\Debug\Microsoft.QualityTools.Testing.Fakes.dll
+E:\Private\WeChatADB\WeChat\bin\Debug\zh-Hans\Microsoft.QualityTools.Testing.Fakes.resources.dll
+E:\Private\WeChatADB\WeChat\obj\Debug\WeChat.csprojFakesResolveAssemblyReference.cache
